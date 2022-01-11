@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models as Models;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class UserController extends Controller
 {
@@ -13,30 +14,29 @@ class UserController extends Controller
         try {
             $result = Models\User::create(['name'=> $request->input('name')]);
         } catch(\Exception $e) {
-            $result = [
+            return response()->json([
                 'result' => false,
                 'error' => [
                     'messages' => [$e->getMessage()]
                 ],
-            ];
-            return json_encode($result);
+            ], Response::HTTP_SERVICE_UNAVAILABLE);
         }
-        return $result->tojson();
+        
+        return response()->json($result, Response::HTTP_CREATED);
     }
 
     public function fetchAll() {
         try {
             $result = Models\User::all();
         } catch(\Exception $e) {
-            $result = [
+            return response()->json([
                 'result' => false,
                 'error' => [
                     'messages' => [$e->getMessage()]
                 ],
-            ];
-            return json_encode($result);
+            ], Response::HTTP_SERVICE_UNAVAILABLE);
         }
-        return $result->tojson();
+        return response()->json($result);
     }
 
     public function fetchById($id) {
@@ -44,14 +44,13 @@ class UserController extends Controller
             $result = Models\User::where('id', $id)
                     ->get();
         } catch(\Exception $e) {
-            $result = [
+            return response()->json([
                 'result' => false,
                 'error' => [
                     'messages' => [$e->getMessage()]
                 ],
-            ];
-            return json_encode($result);
+            ], Response::HTTP_SERVICE_UNAVAILABLE);
         }
-        return $result->tojson();
+        return response()->json($result);
     }
 }
