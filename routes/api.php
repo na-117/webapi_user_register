@@ -18,6 +18,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::post('add', [UserController::class, 'add']);
-Route::get('fetchAll', [UserController::class, 'fetchAll']);
-Route::get('fetchById/{id}', [UserController::class, 'fetchById']);
+Route::post('users', [UserController::class, 'add']);
+Route::get('users', [UserController::class, 'fetchAll']);
+Route::get('users/{id}', [UserController::class, 'fetchById']);
