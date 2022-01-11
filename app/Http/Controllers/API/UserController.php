@@ -19,7 +19,7 @@ class UserController extends Controller
                     'messages' => [$e->getMessage()]
                 ],
             ];
-            return $result->tojson();
+            return json_encode($result);
         }
         return $result->tojson();
     }
@@ -34,7 +34,7 @@ class UserController extends Controller
                     'messages' => [$e->getMessage()]
                 ],
             ];
-            return $result->tojson();
+            return json_encode($result);
         }
         return $result->tojson();
     }
@@ -50,7 +50,7 @@ class UserController extends Controller
                     'messages' => [$e->getMessage()]
                 ],
             ];
-            return $result->tojson();
+            return json_encode($result);
         }
         return $result->tojson();
     }
