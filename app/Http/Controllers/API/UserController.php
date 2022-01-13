@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models as Models;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Exception;
 
 class UserController extends Controller
 {
@@ -13,11 +14,11 @@ class UserController extends Controller
     public function add(Request $request) {
         try {
             $result = Models\User::create(['name'=> $request->input('name')]);
-        } catch(\Exception $e) {
+        } catch(Exception $e) {
             return response()->json([
                 'result' => false,
                 'error' => [
-                    'messages' => [$e->getMessage()]
+                    'messages' => 'error!'
                 ],
             ], Response::HTTP_SERVICE_UNAVAILABLE);
         }
@@ -28,11 +29,11 @@ class UserController extends Controller
     public function fetchAll() {
         try {
             $result = Models\User::all();
-        } catch(\Exception $e) {
+        } catch(Exception $e) {
             return response()->json([
                 'result' => false,
                 'error' => [
-                    'messages' => [$e->getMessage()]
+                    'messages' => $e->getMessage()
                 ],
             ], Response::HTTP_SERVICE_UNAVAILABLE);
         }
@@ -42,15 +43,26 @@ class UserController extends Controller
     public function fetchById($id) {
         try {
             $result = Models\User::where('id', $id)
-                    ->get();
-        } catch(\Exception $e) {
+                    ->first();
+            if (isset($result) === false) {
+                throw new Exception('not_exit_data');
+            }
+        } catch(QueryException $e) {
             return response()->json([
                 'result' => false,
                 'error' => [
-                    'messages' => [$e->getMessage()]
+                    'messages' => $e->getMessage()
                 ],
             ], Response::HTTP_SERVICE_UNAVAILABLE);
+        } catch(Exception $e) {
+            return response()->json([
+                'result' => false,
+                'error' => [
+                    'messages' => $e->getMessage()
+                ],
+            ], Response::HTTP_NOT_FOUND);
         }
+        
         return response()->json($result);
     }
 }
