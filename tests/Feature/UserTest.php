@@ -21,53 +21,52 @@ class UserTest extends TestCase
      *
      * @return void
      */
-    public function test_add()
+    public function test_ユーザーの追加ができるか()
     {
-        //ユーザーの追加ができるか
-            //ユーザーがDBに保存されるか
-            //返り値に保存されたユーザー情報が返ってくるか
-            //保存されるデータがリクエストと同じものか
-        //エラー時
-            //503がかえってくるか
-            //resultがfalseになっているか
-            //エラーmessage
-
-        //$user = User::factory()->create();
-        //$users = User::factory()->count(3)->create();
-        // $this->seed();
-        // $response = $this->get('/api/users');
-        //正常時のテスト
         $params = ['name' => 'hirai'];
         $response = $this->post('/api/users', $params);
         $response->assertStatus(201)
                 ->assertJson([
                     'name' => $params['name'],
                 ]);
+    }
 
-        //エラー時のテスト
+    public function test_空配列でのユーザーの追加エラー時400が返ってくるか()
+    {
         $params = [];
         $response = $this->post('/api/users', $params);
-        $response->assertStatus(503)
+        $response->assertStatus(400)
                 ->assertJson([
                     'result' => false,
                     'error' => [
-                        'messages' => 'error!'
+                        'messages' => 'Validation error'
                     ]
                 ]);
     }
 
-    public function test_fetchAll()
+    public function test_int型でのユーザーの追加エラー時400が返ってくるか()
     {
-        //正常時のテスト
+        $params = ["name" => 1];
+        $response = $this->post('/api/users', $params);
+        $response->assertStatus(400)
+                ->assertJson([
+                    'result' => false,
+                    'error' => [
+                        'messages' => 'Validation error'
+                    ]
+                ]);
+    }
+
+    public function test_全てのユーザーが取得できるか()
+    {
         $users = User::factory()->count(10)->create();
         $response = $this->get('/api/users');
         $response->assertOk()
                 ->assertJsonCount(10);
     }
 
-    public function test_fetchById()
+    public function test_ID指定ユーザー取得ができるか()
     {
-        //正常時のテスト
         $users = User::factory()->count(5)->create();
         $response = $this->get('/api/users/' . $users->toArray()[0]['id']);
         $response->assertOk()
@@ -75,16 +74,41 @@ class UserTest extends TestCase
                     'id' => $users->toArray()[0]['id'],
                     'name' => $users->toArray()[0]['name'],
                 ]);
+    }
 
-        //エラー時のテスト
-        $response = $this->get('/api/users/' . 6);
+    public function test_ID指定ユーザー取得エラー時に404が返ってくるか()
+    {
+        $response = $this->get('/api/users/' . 999);
         $response->assertStatus(404)
                 ->assertJson([
                     'result' => false,
                     'error' => [
-                        'messages' => 'not_exit_data'
+                        'messages' => 'user not found'
                     ]
                 ]);
+    }
 
+    public function test_IDが文字列での指定ユーザー取得エラー時に400が返ってくるか()
+    {
+        $response = $this->get('/api/users/' . 'abc');
+        $response->assertStatus(400)
+                ->assertJson([
+                    'result' => false,
+                    'error' => [
+                        'messages' => 'Validation error'
+                    ]
+                ]);
+    }
+
+    public function test_IDが0指定ユーザー取得エラー時に400が返ってくるか()
+    {
+        $response = $this->get('/api/users/' . 0);
+        $response->assertStatus(400)
+                ->assertJson([
+                    'result' => false,
+                    'error' => [
+                        'messages' => 'Validation error'
+                    ]
+                ]);
     }
 }
