@@ -10,6 +10,9 @@ use Exception;
 use Illuminate\Database\QueryException;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+
 
 class UserController extends Controller
 {
@@ -18,24 +21,14 @@ class UserController extends Controller
         try {
             $request->validate([
                 'name' => 'required|string',
+                'password' => 'required|string'
             ]);
-            $result = Models\User::create(['name'=> $request->input('name')]);
+            $result = Models\User::create(['name'=> $request->input('name',), 'password'=> Hash::make($request->input('password'))]);
         } catch(ValidationException $e) {
-            return response()->json([
-                'result' => false,
-                'error' => [
-                    'messages' => 'Validation error'
-                ],
-            ], Response::HTTP_BAD_REQUEST);
+            return response()->json('Validation error', Response::HTTP_BAD_REQUEST);
         } catch(Exception $e) {
-            return response()->json([
-                'result' => false,
-                'error' => [
-                    'messages' => 'error!'
-                ],
-            ], Response::HTTP_SERVICE_UNAVAILABLE);
+            return response()->json('error!', Response::HTTP_SERVICE_UNAVAILABLE);
         }
-        
         return response()->json($result, Response::HTTP_CREATED);
     }
 
@@ -43,18 +36,14 @@ class UserController extends Controller
         try {
             $result = Models\User::all();
         } catch(Exception $e) {
-            return response()->json([
-                'result' => false,
-                'error' => [
-                    'messages' => $e->getMessage()
-                ],
-            ], Response::HTTP_SERVICE_UNAVAILABLE);
+            return response()->json($e->getMessage(), Response::HTTP_SERVICE_UNAVAILABLE);
         }
         return response()->json($result);
     }
 
     public function fetchById($id) {
         try {
+            
             $validator = Validator::make(['id' => $id],[
                 'id' => 'required|int|min:1'
             ]);
@@ -62,29 +51,17 @@ class UserController extends Controller
             $result = Models\User::where('id', $id)
                     ->first();
             if (isset($result) === false) {
-                throw new Exception('user not found');
+                throw new Exception('User Not Found');
+            }
+            if ((int) $id !== Auth::id()) {
+                return response()->json('unauthorized', Response::HTTP_UNAUTHORIZED);
             }
         } catch(ValidationException $e) {
-            return response()->json([
-                'result' => false,
-                'error' => [
-                    'messages' => 'Validation error'
-                ],
-            ], Response::HTTP_BAD_REQUEST);
+            return response()->json('Validation error', Response::HTTP_BAD_REQUEST);
         } catch(QueryException $e) {
-            return response()->json([
-                'result' => false,
-                'error' => [
-                    'messages' => $e->getMessage()
-                ],
-            ], Response::HTTP_SERVICE_UNAVAILABLE);
+            return response()->json($e->getMessage(), Response::HTTP_SERVICE_UNAVAILABLE);
         } catch(Exception $e) {
-            return response()->json([
-                'result' => false,
-                'error' => [
-                    'messages' => $e->getMessage()
-                ],
-            ], Response::HTTP_NOT_FOUND);
+            return response()->json($e->getMessage(), Response::HTTP_NOT_FOUND);
         }
         
         return response()->json($result);
